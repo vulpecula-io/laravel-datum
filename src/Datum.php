@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace Vulpecula\Datum;
 
-use Vulpecula\Datum\Contracts\Ingest;
-use Vulpecula\Datum\Contracts\Storage;
-use Vulpecula\Datum\Events\ExceptionReported;
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
 use Illuminate\Contracts\Events\Dispatcher;
@@ -15,6 +12,9 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Lottery;
 use Illuminate\Support\Traits\ForwardsCalls;
 use Throwable;
+use Vulpecula\Datum\Contracts\Ingest;
+use Vulpecula\Datum\Contracts\Storage;
+use Vulpecula\Datum\Events\ExceptionReported;
 
 /**
  * @mixin Storage
@@ -97,7 +97,7 @@ class Datum
     public function register(array $recorders): self
     {
         $recorders = collect($recorders)->map(function ($recorder, $key) {
-            if (false === $recorder || (is_array($recorder) && ! ($recorder['enabled'] ?? true))) {
+            if ($recorder === false || (is_array($recorder) && ! ($recorder['enabled'] ?? true))) {
                 return;
             }
 

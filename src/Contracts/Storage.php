@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Vulpecula\Datum\Contracts;
 
-use Vulpecula\Datum\Enums\Period;
-use Vulpecula\Datum\Entry;
-use Vulpecula\Datum\Value;
 use Illuminate\Support\Collection;
+use Vulpecula\Datum\Entry;
+use Vulpecula\Datum\Enums\Period;
+use Vulpecula\Datum\Value;
 
 interface Storage
 {
