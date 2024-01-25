@@ -132,7 +132,7 @@ class DatabaseStorage implements Storage
      */
     protected function requiresManualKeyHash(): bool
     {
-        return $this->connection()->getDriverName() === 'sqlite';
+        return 'sqlite' === $this->connection()->getDriverName();
     }
 
     /**
@@ -410,7 +410,7 @@ class DatabaseStorage implements Storage
      */
     public function purge(?array $types = null): void
     {
-        if ($types === null) {
+        if (null === $types) {
             $this->connection()->table('datum_values')->truncate();
             $this->connection()->table('datum_entries')->truncate();
             $this->connection()->table('datum_aggregates')->truncate();
@@ -743,44 +743,44 @@ class DatabaseStorage implements Storage
             }." as {$this->wrap($aggregate)}")
             ->fromSub(fn (Builder $query) => $query
             // Tail
-            ->addSelect('type')
-            ->selectRaw(match ($aggregate) {
-                'count' => 'count(*)',
-                'min' => "min({$this->wrap('value')})",
-                'max' => "max({$this->wrap('value')})",
-                'sum' => "sum({$this->wrap('value')})",
-                'avg' => "avg({$this->wrap('value')})",
-            }." as {$this->wrap($aggregate)}")
-            ->from('datum_entries')
-            ->when(
-                is_array($types),
-                fn ($query) => $query->whereIn('type', $types),
-                fn ($query) => $query->where('type', $types)
-            )
-            ->where('timestamp', '>=', $tailStart)
-            ->where('timestamp', '<=', $tailEnd)
-            ->groupBy('type')
-            // Buckets
-            ->unionAll(fn (Builder $query) => $query
-                ->select('type')
+                ->addSelect('type')
                 ->selectRaw(match ($aggregate) {
-                    'count' => "sum({$this->wrap('value')})",
+                    'count' => 'count(*)',
                     'min' => "min({$this->wrap('value')})",
                     'max' => "max({$this->wrap('value')})",
                     'sum' => "sum({$this->wrap('value')})",
                     'avg' => "avg({$this->wrap('value')})",
                 }." as {$this->wrap($aggregate)}")
-                ->from('datum_aggregates')
-                ->where('period', $period)
+                ->from('datum_entries')
                 ->when(
                     is_array($types),
                     fn ($query) => $query->whereIn('type', $types),
                     fn ($query) => $query->where('type', $types)
                 )
-                ->where('aggregate', $aggregate)
-                ->where('bucket', '>=', $oldestBucket)
+                ->where('timestamp', '>=', $tailStart)
+                ->where('timestamp', '<=', $tailEnd)
                 ->groupBy('type')
-            ), as: 'child'
+            // Buckets
+                ->unionAll(fn (Builder $query) => $query
+                    ->select('type')
+                    ->selectRaw(match ($aggregate) {
+                        'count' => "sum({$this->wrap('value')})",
+                        'min' => "min({$this->wrap('value')})",
+                        'max' => "max({$this->wrap('value')})",
+                        'sum' => "sum({$this->wrap('value')})",
+                        'avg' => "avg({$this->wrap('value')})",
+                    }." as {$this->wrap($aggregate)}")
+                    ->from('datum_aggregates')
+                    ->where('period', $period)
+                    ->when(
+                        is_array($types),
+                        fn ($query) => $query->whereIn('type', $types),
+                        fn ($query) => $query->where('type', $types)
+                    )
+                    ->where('aggregate', $aggregate)
+                    ->where('bucket', '>=', $oldestBucket)
+                    ->groupBy('type')
+                ), as: 'child'
             )
             ->groupBy('type')
             ->when(

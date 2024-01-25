@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Vulpecula\Datum\Contracts;
 
 use Illuminate\Support\Collection;

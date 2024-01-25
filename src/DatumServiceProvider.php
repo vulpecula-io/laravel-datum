@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Vulpecula\Datum;
 
 use Illuminate\Auth\Events\Logout;

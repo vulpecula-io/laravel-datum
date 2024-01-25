@@ -97,7 +97,7 @@ class Datum
     public function register(array $recorders): self
     {
         $recorders = collect($recorders)->map(function ($recorder, $key) {
-            if ($recorder === false || (is_array($recorder) && ! ($recorder['enabled'] ?? true))) {
+            if (false === $recorder || (is_array($recorder) && ! ($recorder['enabled'] ?? true))) {
                 return;
             }
 
