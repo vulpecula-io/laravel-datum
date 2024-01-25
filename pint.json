@@ -1,0 +1,10 @@
+{
+    "preset": "laravel",
+    "rules": {
+        "yoda_style": true,
+        "declare_strict_types": true
+    },
+    "exclude": [
+        "tests"
+    ]
+}
