@@ -46,7 +46,6 @@ interface Storage
      * Retrieve aggregate values for plotting on a graph.
      *
      * @param  list<string>  $types
-     * @param  'count'|'min'|'max'|'sum'|'avg'  $aggregate
      * @return Collection<string, Collection<string, Collection<string, int|null>>>
      */
     public function graph(array $types, string $aggregate, Period $interval): Collection;

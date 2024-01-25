@@ -421,6 +421,8 @@ class Datum
     /**
      * Forward calls to the storage driver.
      *
+     * @mixin Storage
+     *
      * @param  string  $method
      * @param  array<mixed>  $parameters
      */
