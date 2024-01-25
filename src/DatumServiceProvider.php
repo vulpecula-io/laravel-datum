@@ -2,22 +2,21 @@
 
 namespace Vulpecula\Datum;
 
+use Illuminate\Auth\Events\Logout;
+use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\Http\Kernel as HttpKernel;
+use Illuminate\Queue\Events\Looping;
+use Illuminate\Queue\Events\WorkerStopping;
 use RuntimeException;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use Vulpecula\Datum\Commands\DatumCommand;
 use Vulpecula\Datum\Contracts\Ingest;
 use Vulpecula\Datum\Contracts\Storage;
 use Vulpecula\Datum\Ingests\NullIngest;
 use Vulpecula\Datum\Ingests\StorageIngest;
 use Vulpecula\Datum\Storage\DatabaseStorage;
-use Illuminate\Contracts\Http\Kernel as HttpKernel;
-use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
-use Illuminate\Queue\Events\Looping;
-use Illuminate\Queue\Events\WorkerStopping;
-use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Auth\Events\Logout;
 
 class DatumServiceProvider extends PackageServiceProvider
 {

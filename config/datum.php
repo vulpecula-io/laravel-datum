@@ -87,13 +87,13 @@ return [
     */
 
     'recorders' => [
-//        Recorders\ExampleRecord::class => [
-//            'enabled' => env('YOUR_RECORDER_ENABLED', true),
-//            'sample_rate' => env('DATUM_USER_REQUESTS_SAMPLE_RATE', 1),
-//            'ignore' => [
-//                '#^/datum$#', // Datum dashboard...
-//                '#^/telescope#', // Telescope dashboard...
-//            ],
-//        ],
+        //        Recorders\ExampleRecord::class => [
+        //            'enabled' => env('YOUR_RECORDER_ENABLED', true),
+        //            'sample_rate' => env('DATUM_USER_REQUESTS_SAMPLE_RATE', 1),
+        //            'ignore' => [
+        //                '#^/datum$#', // Datum dashboard...
+        //                '#^/telescope#', // Telescope dashboard...
+        //            ],
+        //        ],
     ],
 ];

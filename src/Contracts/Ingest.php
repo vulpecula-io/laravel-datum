@@ -2,8 +2,8 @@
 
 namespace Vulpecula\Datum\Contracts;
 
-use Vulpecula\Datum\Entry;
 use Illuminate\Support\Collection;
+use Vulpecula\Datum\Entry;
 
 interface Ingest
 {
