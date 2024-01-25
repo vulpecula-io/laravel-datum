@@ -54,7 +54,7 @@ class DatabaseStorage implements Storage
                 ->reject->isOnlyBuckets()
                 ->chunk($this->config->get('datum.storage.database.chunk'))
                 ->each(fn ($chunk) => $this->connection()
-                    ->table('pulse_entries')
+                    ->table('datum_entries')
                     ->insert(
                         $this->requiresManualKeyHash()
                             ? $chunk->map(fn ($entry) => [
@@ -104,7 +104,7 @@ class DatabaseStorage implements Storage
                 ->collapseValues($values)
                 ->chunk($this->config->get('datum.storage.database.chunk'))
                 ->each(fn ($chunk) => $this->connection()
-                    ->table('pulse_values')
+                    ->table('datum_values')
                     ->upsert(
                         $this->requiresManualKeyHash()
                             ? $chunk->map(fn ($entry) => [
@@ -198,13 +198,13 @@ class DatabaseStorage implements Storage
      */
     protected function upsertCount(array $values): int
     {
-        return $this->connection()->table('pulse_aggregates')->upsert(
+        return $this->connection()->table('datum_aggregates')->upsert(
             $values,
             ['bucket', 'period', 'type', 'aggregate', 'key_hash'],
             [
                 'value' => match ($driver = $this->connection()->getDriverName()) {
                     'mysql' => new Expression('`value` + values(`value`)'),
-                    'pgsql', 'sqlite' => new Expression('"pulse_aggregates"."value" + "excluded"."value"'),
+                    'pgsql', 'sqlite' => new Expression('"datum_aggregates"."value" + "excluded"."value"'),
                     default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
                 },
             ]
@@ -234,14 +234,14 @@ class DatabaseStorage implements Storage
      */
     protected function upsertMin(array $values): int
     {
-        return $this->connection()->table('pulse_aggregates')->upsert(
+        return $this->connection()->table('datum_aggregates')->upsert(
             $values,
             ['bucket', 'period', 'type', 'aggregate', 'key_hash'],
             [
                 'value' => match ($driver = $this->connection()->getDriverName()) {
                     'mysql' => new Expression('least(`value`, values(`value`))'),
-                    'pgsql' => new Expression('least("pulse_aggregates"."value", "excluded"."value")'),
-                    'sqlite' => new Expression('min("pulse_aggregates"."value", "excluded"."value")'),
+                    'pgsql' => new Expression('least("datum_aggregates"."value", "excluded"."value")'),
+                    'sqlite' => new Expression('min("datum_aggregates"."value", "excluded"."value")'),
                     default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
                 },
             ]
@@ -271,14 +271,14 @@ class DatabaseStorage implements Storage
      */
     protected function upsertMax(array $values): int
     {
-        return $this->connection()->table('pulse_aggregates')->upsert(
+        return $this->connection()->table('datum_aggregates')->upsert(
             $values,
             ['bucket', 'period', 'type', 'aggregate', 'key_hash'],
             [
                 'value' => match ($driver = $this->connection()->getDriverName()) {
                     'mysql' => new Expression('greatest(`value`, values(`value`))'),
-                    'pgsql' => new Expression('greatest("pulse_aggregates"."value", "excluded"."value")'),
-                    'sqlite' => new Expression('max("pulse_aggregates"."value", "excluded"."value")'),
+                    'pgsql' => new Expression('greatest("datum_aggregates"."value", "excluded"."value")'),
+                    'sqlite' => new Expression('max("datum_aggregates"."value", "excluded"."value")'),
                     default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
                 },
             ]
@@ -306,13 +306,13 @@ class DatabaseStorage implements Storage
      */
     protected function upsertSum(array $values): int
     {
-        return $this->connection()->table('pulse_aggregates')->upsert(
+        return $this->connection()->table('datum_aggregates')->upsert(
             $values,
             ['bucket', 'period', 'type', 'aggregate', 'key_hash'],
             [
                 'value' => match ($driver = $this->connection()->getDriverName()) {
                     'mysql' => new Expression('`value` + values(`value`)'),
-                    'pgsql', 'sqlite' => new Expression('"pulse_aggregates"."value" + "excluded"."value"'),
+                    'pgsql', 'sqlite' => new Expression('"datum_aggregates"."value" + "excluded"."value"'),
                     default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
                 },
             ]
@@ -343,7 +343,7 @@ class DatabaseStorage implements Storage
      */
     protected function upsertAvg(array $values): int
     {
-        return $this->connection()->table('pulse_aggregates')->upsert(
+        return $this->connection()->table('datum_aggregates')->upsert(
             $values,
             ['bucket', 'period', 'type', 'aggregate', 'key_hash'],
             match ($driver = $this->connection()->getDriverName()) {
@@ -352,8 +352,8 @@ class DatabaseStorage implements Storage
                     'count' => new Expression('`count` + values(`count`)'),
                 ],
                 'pgsql', 'sqlite' => [
-                    'value' => new Expression('("pulse_aggregates"."value" * "pulse_aggregates"."count" + ("excluded"."value" * "excluded"."count")) / ("pulse_aggregates"."count" + "excluded"."count")'),
-                    'count' => new Expression('"pulse_aggregates"."count" + "excluded"."count"'),
+                    'value' => new Expression('("datum_aggregates"."value" * "datum_aggregates"."count" + ("excluded"."value" * "excluded"."count")) / ("datum_aggregates"."count" + "excluded"."count")'),
+                    'count' => new Expression('"datum_aggregates"."count" + "excluded"."count"'),
                 ],
                 default => throw new RuntimeException("Unsupported database driver [{$driver}]"),
             }
@@ -379,12 +379,12 @@ class DatabaseStorage implements Storage
         $now = CarbonImmutable::now();
 
         $this->connection()
-            ->table('pulse_values')
+            ->table('datum_values')
             ->where('timestamp', '<=', $now->subWeek()->getTimestamp())
             ->delete();
 
         $this->connection()
-            ->table('pulse_entries')
+            ->table('datum_entries')
             ->where('timestamp', '<=', $now->subWeek()->getTimestamp())
             ->delete();
 
@@ -393,11 +393,11 @@ class DatabaseStorage implements Storage
         // 1 query instead of 5
 
         $this->connection()
-            ->table('pulse_aggregates')
+            ->table('datum_aggregates')
             ->distinct()
             ->pluck('period')
             ->each(fn (int $period) => $this->connection()
-                ->table('pulse_aggregates')
+                ->table('datum_aggregates')
                 ->where('period', $period)
                 ->where('bucket', '<=', $now->subMinutes($period)->getTimestamp())
                 ->delete());
@@ -411,16 +411,16 @@ class DatabaseStorage implements Storage
     public function purge(?array $types = null): void
     {
         if (null === $types) {
-            $this->connection()->table('pulse_values')->truncate();
-            $this->connection()->table('pulse_entries')->truncate();
-            $this->connection()->table('pulse_aggregates')->truncate();
+            $this->connection()->table('datum_values')->truncate();
+            $this->connection()->table('datum_entries')->truncate();
+            $this->connection()->table('datum_aggregates')->truncate();
 
             return;
         }
 
-        $this->connection()->table('pulse_values')->whereIn('type', $types)->delete();
-        $this->connection()->table('pulse_entries')->whereIn('type', $types)->delete();
-        $this->connection()->table('pulse_aggregates')->whereIn('type', $types)->delete();
+        $this->connection()->table('datum_values')->whereIn('type', $types)->delete();
+        $this->connection()->table('datum_entries')->whereIn('type', $types)->delete();
+        $this->connection()->table('datum_aggregates')->whereIn('type', $types)->delete();
     }
 
     /**
@@ -436,7 +436,7 @@ class DatabaseStorage implements Storage
     public function values(string $type, ?array $keys = null): Collection
     {
         return $this->connection()
-            ->table('pulse_values')
+            ->table('datum_values')
             ->select('timestamp', 'key', 'value')
             ->where('type', $type)
             ->when($keys, fn ($query) => $query->whereIn('key', $keys))
@@ -466,7 +466,7 @@ class DatabaseStorage implements Storage
 
         $structure = collect($types)->mapWithKeys(fn ($type) => [$type => $padding]);
 
-        return $this->connection()->table('pulse_aggregates') // @phpstan-ignore return.type
+        return $this->connection()->table('datum_aggregates') // @phpstan-ignore return.type
         ->select(['bucket', 'type', 'key', 'value'])
             ->whereIn('type', $types)
             ->where('aggregate', $aggregate)
@@ -520,7 +520,7 @@ class DatabaseStorage implements Storage
             ->select([
                 'key' => fn (Builder $query) => $query
                     ->select('key')
-                    ->from('pulse_entries', as: 'keys')
+                    ->from('datum_entries', as: 'keys')
                     ->whereColumn('keys.key_hash', 'aggregated.key_hash')
                     ->limit(1),
                 ...$aggregates,
@@ -558,7 +558,7 @@ class DatabaseStorage implements Storage
                     }
 
                     $query
-                        ->from('pulse_entries')
+                        ->from('datum_entries')
                         ->where('type', $type)
                         ->where('timestamp', '>=', $windowStart)
                         ->where('timestamp', '<=', $oldestBucket - 1)
@@ -584,7 +584,7 @@ class DatabaseStorage implements Storage
                             }
 
                             $query
-                                ->from('pulse_aggregates')
+                                ->from('datum_aggregates')
                                 ->where('period', $period)
                                 ->where('type', $type)
                                 ->where('aggregate', $currentAggregate)
@@ -635,7 +635,7 @@ class DatabaseStorage implements Storage
             ->select([
                 'key' => fn (Builder $query) => $query
                     ->select('key')
-                    ->from('pulse_entries', as: 'keys')
+                    ->from('datum_entries', as: 'keys')
                     ->whereColumn('keys.key_hash', 'aggregated.key_hash')
                     ->limit(1),
                 ...$types,
@@ -673,7 +673,7 @@ class DatabaseStorage implements Storage
                     }
 
                     $query
-                        ->from('pulse_entries')
+                        ->from('datum_entries')
                         ->whereIn('type', $types)
                         ->where('timestamp', '>=', $windowStart)
                         ->where('timestamp', '<=', $oldestBucket - 1)
@@ -694,7 +694,7 @@ class DatabaseStorage implements Storage
                         }
 
                         $query
-                            ->from('pulse_aggregates')
+                            ->from('datum_aggregates')
                             ->where('period', $period)
                             ->whereIn('type', $types)
                             ->where('aggregate', $aggregate)
@@ -751,7 +751,7 @@ class DatabaseStorage implements Storage
                         'sum' => "sum({$this->wrap('value')})",
                         'avg' => "avg({$this->wrap('value')})",
                     }." as {$this->wrap($aggregate)}")
-                ->from('pulse_entries')
+                ->from('datum_entries')
                 ->when(
                     is_array($types),
                     fn ($query) => $query->whereIn('type', $types),
@@ -770,7 +770,7 @@ class DatabaseStorage implements Storage
                             'sum' => "sum({$this->wrap('value')})",
                             'avg' => "avg({$this->wrap('value')})",
                         }." as {$this->wrap($aggregate)}")
-                    ->from('pulse_aggregates')
+                    ->from('datum_aggregates')
                     ->where('period', $period)
                     ->when(
                         is_array($types),
