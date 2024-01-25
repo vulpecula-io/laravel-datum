@@ -195,8 +195,7 @@ class Datum
             return;
         }
 
-        // TODO remove fallback when tagging v1
-        $buffer = $this->app->make('config')->get('datum.ingest.buffer') ?? 5_000;
+        $buffer = $this->app->make('config')->get('datum.ingest.buffer');
 
         if (($this->entries->count() + $this->lazy->count()) > $buffer) {
             $this->evaluatingBuffer = true;
@@ -247,8 +246,7 @@ class Datum
                 return $entries->count();
             }) ?? 0;
 
-            // TODO remove fallback when tagging v1
-            $odds = $this->app->make('config')->get('datum.ingest.trim.lottery') ?? $this->app->make('config')->get('datum.ingest.trim_lottery');
+            $odds = $this->app->make('config')->get('datum.ingest.trim.lottery');
 
             Lottery::odds(...$odds)
                 ->winner(fn () => $this->rescue(fn () => $ingest->trim(...)))

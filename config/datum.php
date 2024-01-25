@@ -87,8 +87,8 @@ return [
     */
 
     'recorders' => [
-//        Recorders\UserRequests::class => [
-//            'enabled' => env('DATUM_USER_REQUESTS_ENABLED', true),
+//        Recorders\ExampleRecord::class => [
+//            'enabled' => env('YOUR_RECORDER_ENABLED', true),
 //            'sample_rate' => env('DATUM_USER_REQUESTS_SAMPLE_RATE', 1),
 //            'ignore' => [
 //                '#^/datum$#', // Datum dashboard...
