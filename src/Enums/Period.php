@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Vulpecula\Datum\Enums;
 
 use Carbon\CarbonImmutable;
+use Carbon\CarbonPeriodImmutable;
 
 enum Period: int
 {
@@ -68,11 +69,21 @@ enum Period: int
         };
     }
 
+    /**
+     * Function period.
+     *
+     * @return int
+     */
     public function period(): int
     {
         return $this->value;
     }
 
+    /**
+     * Function currentBucket.
+     *
+     * @return int
+     */
     public function currentBucket(): int
     {
         $now = CarbonImmutable::now();
@@ -85,6 +96,12 @@ enum Period: int
         };
     }
 
+    /**
+     * Function getBucketForTimestamp.
+     *
+     * @param $timestamp
+     * @return int
+     */
     public function getBucketForTimestamp($timestamp): int
     {
         $now = CarbonImmutable::createFromTimestamp($timestamp);
@@ -97,6 +114,11 @@ enum Period: int
         };
     }
 
+    /**
+     * Function getDateTimeFormat.
+     *
+     * @return string
+     */
     public function getDateTimeFormat(): string
     {
         return match ($this) {
@@ -105,5 +127,27 @@ enum Period: int
             self::WEEK, self::QUARTER, self::MONTH => 'Y-m-d',
             self::HALFYEAR, self::YEAR => 'Y-m-01',
         };
+    }
+
+    /**
+     * Function getBuckets.
+     *
+     * @return array
+     */
+    public function getBuckets(): array
+    {
+        $now = CarbonImmutable::now();
+        $period = match ($this) {
+            self::HOUR => CarbonPeriodImmutable::create($now->startOfMinute(), '-1 minute', $this->maxDataPoints()),
+            self::SIXHOUR => CarbonPeriodImmutable::create($now->startOfHour(), '-1 hour', $this->maxDataPoints()),
+            self::HALFDAY => CarbonPeriodImmutable::create($now->startOfHour(), '-1 hour', $this->maxDataPoints()),
+            self::DAY => CarbonPeriodImmutable::create($now->startOfHour(), '-1 day', $this->maxDataPoints()),
+            self::WEEK => CarbonPeriodImmutable::create($now->startOfDay(), '-1 day', $this->maxDataPoints()),
+            self::MONTH => CarbonPeriodImmutable::create($now->startOfDay(), '-1 day', $this->maxDataPoints()),
+            self::QUARTER => CarbonPeriodImmutable::create($now->startOfDay(), '-1 day', $this->maxDataPoints()),
+            self::HALFYEAR => CarbonPeriodImmutable::create($now->startOfMonth(), '-1 month', $this->maxDataPoints()),
+            self::YEAR => CarbonPeriodImmutable::create($now->startOfMonth(), '-1 month', $this->maxDataPoints()),
+        };
+        return collect($period->toArray())->reverse()->values()->all();
     }
 }
