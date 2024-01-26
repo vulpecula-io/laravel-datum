@@ -71,8 +71,6 @@ enum Period: int
 
     /**
      * Function period.
-     *
-     * @return int
      */
     public function period(): int
     {
@@ -81,8 +79,6 @@ enum Period: int
 
     /**
      * Function currentBucket.
-     *
-     * @return int
      */
     public function currentBucket(): int
     {
@@ -98,9 +94,6 @@ enum Period: int
 
     /**
      * Function getBucketForTimestamp.
-     *
-     * @param $timestamp
-     * @return int
      */
     public function getBucketForTimestamp($timestamp): int
     {
@@ -116,8 +109,6 @@ enum Period: int
 
     /**
      * Function getDateTimeFormat.
-     *
-     * @return string
      */
     public function getDateTimeFormat(): string
     {
@@ -131,8 +122,6 @@ enum Period: int
 
     /**
      * Function getBuckets.
-     *
-     * @return array
      */
     public function getBuckets(): array
     {
@@ -148,6 +137,7 @@ enum Period: int
             self::HALFYEAR => CarbonPeriodImmutable::create($now->startOfMonth(), '-1 month', $this->maxDataPoints()),
             self::YEAR => CarbonPeriodImmutable::create($now->startOfMonth(), '-1 month', $this->maxDataPoints()),
         };
+
         return collect($period->toArray())->reverse()->values()->all();
     }
 }
