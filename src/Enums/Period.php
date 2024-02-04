@@ -149,7 +149,7 @@ enum Period
                 $now->gte(CarbonImmutable::createFromDate($now->year, 4, 6))
                     ? CarbonImmutable::createFromDate($now->year + 1, 4, 6)->startOfDay()
                     : CarbonImmutable::createFromDate($now->year, 4, 6)->startOfDay(),
-                "-1 month",
+                '-1 month',
                 $this->maxDataPoints() + 1
             ),
         };
@@ -160,6 +160,7 @@ enum Period
     public function getWindow(): array
     {
         $now = CarbonImmutable::now()->startOfMinute();
+
         return match ($this) {
             self::HOUR => $window = [
                 'start' => $now->subHour()->getTimestamp(),
