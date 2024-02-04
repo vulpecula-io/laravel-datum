@@ -237,7 +237,6 @@ class Datum
 
                 return 0;
             }
-
             $ingest = $this->app->make(Ingest::class);
 
             $count = $this->rescue(function () use ($entries, $ingest) {

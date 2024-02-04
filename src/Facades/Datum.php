@@ -7,7 +7,7 @@ namespace Vulpecula\Datum\Facades;
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @see \Vulpecula\Datum\Datum
+ * @mixin \Vulpecula\Datum\Datum
  */
 class Datum extends Facade
 {
