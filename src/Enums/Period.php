@@ -195,7 +195,7 @@ enum Period
                 'end' => $now->startOfDay()->getTimestamp(),
             ],
             self::YEAR => $window = [
-                'start' => $now->subYear()->startOfMonth()->getTimestamp(),
+                'start' => $now->subMonths(11)->startOfMonth()->getTimestamp(),
                 'end' => $now->startOfMonth()->getTimestamp(),
             ],
             self::TAXYEAR => $window = [
