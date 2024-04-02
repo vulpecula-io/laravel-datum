@@ -92,7 +92,7 @@ class Datum
     /**
      * Register a recorder.
      *
-     * @param  array<class-string, array|boolean>  $recorders
+     * @param  array<class-string, array|bool>  $recorders
      */
     public function register(array $recorders): self
     {

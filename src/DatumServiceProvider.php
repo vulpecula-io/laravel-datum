@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Vulpecula\Datum;
 
-use Illuminate\Auth\Events\Logout;
 use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
