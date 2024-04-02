@@ -63,12 +63,6 @@ class DatumServiceProvider extends PackageServiceProvider
     {
         $this->app->booted(function () {
             $this->callAfterResolving(Dispatcher::class, function (Dispatcher $event, Application $app) {
-                $event->listen(function (Logout $event) use ($app) {
-                    $pulse = $app->make(Datum::class);
-
-                    $pulse->rescue(fn () => $pulse->rememberUser($event->user));
-                });
-
                 $event->listen([
                     Looping::class,
                     WorkerStopping::class,
