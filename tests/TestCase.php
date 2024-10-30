@@ -1,36 +1,33 @@
 <?php
 
-namespace Vulpecula\Datum\Tests;
+namespace Tests;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
-use Orchestra\Testbench\TestCase as Orchestra;
-use Vulpecula\Datum\DatumServiceProvider;
+use Illuminate\Contracts\Config\Repository;
+use Illuminate\Foundation\AliasLoader;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Orchestra\Testbench\Attributes\WithMigration;
+use Orchestra\Testbench\Concerns\WithWorkbench;
+use Orchestra\Testbench\TestCase as OrchestraTestCase;
 
-class TestCase extends Orchestra
+abstract class TestCase extends OrchestraTestCase
 {
+    use RefreshDatabase, WithWorkbench;
+
+    protected $enablesPackageDiscoveries = true;
+
     protected function setUp(): void
     {
+        $this->usesTestingFeature(new WithMigration('laravel', 'queue'));
+
         parent::setUp();
 
-        Factory::guessFactoryNamesUsing(
-            fn (string $modelName) => 'Vulpecula\\Datum\\Database\\Factories\\'.class_basename($modelName).'Factory'
-        );
+        AliasLoader::getInstance()->setAliases([]);
     }
 
-    protected function getPackageProviders($app)
+    protected function defineEnvironment($app): void
     {
-        return [
-            DatumServiceProvider::class,
-        ];
-    }
-
-    public function getEnvironmentSetUp($app)
-    {
-        config()->set('database.default', 'testing');
-
-        /*
-        $migration = include __DIR__.'/../database/migrations/create_datum_table.php.stub';
-        $migration->up();
-        */
+        tap($app['config'], function (Repository $config) {
+            $config->set('queue.failed.driver', 'null');
+        });
     }
 }
