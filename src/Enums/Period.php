@@ -74,6 +74,25 @@ enum Period: int
     /**
      * Function period.
      */
+    public function graphPeriod(): ?Period
+    {
+        return match ($this) {
+            self::HOUR => null,
+            self::SIXHOUR => self::HOUR,
+            self::HALFDAY => self::HOUR,
+            self::DAY => self::HOUR,
+            self::WEEK => self::DAY,
+            self::MONTH => self::DAY,
+            self::QUARTER => self::DAY,
+            self::HALFYEAR => self::MONTH,
+            self::YEAR => self::MONTH,
+            self::TAXYEAR => self::MONTH,
+        };
+    }
+
+    /**
+     * Function period.
+     */
     public function maxCount(): int
     {
         return match ($this) {

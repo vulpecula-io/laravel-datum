@@ -451,7 +451,7 @@ class DatabaseStorage implements Storage
             throw new InvalidArgumentException("Invalid aggregate type [$aggregate], allowed types: [".implode(', ', $allowed).'].');
         }
 
-        $period = $interval->value;
+        $period = $interval;
         $buckets = $interval->getBuckets();
         $padding = collect()
             ->range(0, $interval->maxDataPoints() - 1)
@@ -463,7 +463,7 @@ class DatabaseStorage implements Storage
             ->select(['bucket', 'type', 'key', 'value'])
             ->whereIn('type', $types)
             ->where('aggregate', $aggregate)
-            ->where('period', $period - 1)
+            ->where('period', $period->graphPeriod()?->value)
             ->where('bucket', '>=', $buckets[0]->getTimestamp())
             ->orderBy('bucket')
             ->get()
