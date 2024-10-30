@@ -380,27 +380,21 @@ class DatabaseStorage implements Storage
 
         $this->connection()
             ->table('datum_values')
-            ->where('timestamp', '<=', $now->subWeek()->getTimestamp())
+            ->where('timestamp', '<=', $now->subYear()->getTimestamp())
             ->delete();
 
         $this->connection()
             ->table('datum_entries')
-            ->where('timestamp', '<=', $now->subWeek()->getTimestamp())
+            ->where('timestamp', '<=', $now->subYear()->getTimestamp())
             ->delete();
 
-        // TODO: Run a single delete with multiple grouped conditions?
-        // E.g. where (`period` = 60 AND `bucket` <= 1623072000) or (`period` = 360 AND `bucket` <= 1623046800)
-        // 1 query instead of 5
-
-        $this->connection()
-            ->table('datum_aggregates')
-            ->distinct()
-            ->pluck('period')
-            ->each(fn (int $period) => $this->connection()
+        foreach (Period::cases() as $period) {
+            $this->connection()
                 ->table('datum_aggregates')
-                ->where('period', $period)
-                ->where('bucket', '<=', $now->subMinutes($period)->getTimestamp())
-                ->delete());
+                ->where('period', $period->period())
+                ->where('bucket', '<=', $period->getBucketForTimestamp($now->subMinutes($period->period() * $period->maxCount())->getTimestamp()))
+                ->delete();
+        }
     }
 
     /**
@@ -541,55 +535,56 @@ class DatabaseStorage implements Storage
                     $now = CarbonImmutable::now();
                     $period = $interval->period();
                     $windowStart = (int) ($now->getTimestamp() - $interval->totalSeconds() + 1);
-                    $oldestBucket = $interval->currentBucket() - $interval->totalSeconds() + $period;
+                    $oldestBucket = $interval->currentBucket() - $interval->totalSeconds();
+                    ray($interval->currentBucket(), $interval->totalSeconds(), $period, $oldestBucket);
 
                     // Tail
-                    //                    $query->select('key_hash');
-                    //
-                    //                    foreach ($aggregates as $aggregate) {
-                    //                        $query->selectRaw(match ($aggregate) {
-                    //                            'count' => 'count(*)',
-                    //                            'min' => "min({$this->wrap('value')})",
-                    //                            'max' => "max({$this->wrap('value')})",
-                    //                            'sum' => "sum({$this->wrap('value')})",
-                    //                            'avg' => "avg({$this->wrap('value')})",
-                    //                        }." as {$this->wrap($aggregate)}");
-                    //                    }
-                    //
-                    //                    $query
-                    //                        ->from('datum_entries')
-                    //                        ->where('type', $type)
-                    //                        ->where('timestamp', '>=', $windowStart)
-                    //                        ->where('timestamp', '<=', $oldestBucket - 1)
-                    //                        ->groupBy('key_hash');
+                    $query->select('key_hash');
+
+                    foreach ($aggregates as $aggregate) {
+                        $query->selectRaw(match ($aggregate) {
+                            'count' => 'count(*)',
+                            'min' => "min({$this->wrap('value')})",
+                            'max' => "max({$this->wrap('value')})",
+                            'sum' => "sum({$this->wrap('value')})",
+                            'avg' => "avg({$this->wrap('value')})",
+                        }." as {$this->wrap($aggregate)}");
+                    }
+
+                    $query
+                        ->from('datum_entries')
+                        ->where('type', $type)
+                        ->where('timestamp', '>=', $windowStart)
+                        ->where('timestamp', '<=', $oldestBucket - 1)
+                        ->groupBy('key_hash');
 
                     // Buckets
                     foreach ($aggregates as $currentAggregate) {
-                        //                        $query->unionAll(function (Builder $query) use ($type, $aggregates, $currentAggregate, $period, $oldestBucket) {
-                        $query->select('key_hash');
+                        $query->unionAll(function (Builder $query) use ($type, $aggregates, $currentAggregate, $period, $oldestBucket) {
+                            $query->select('key_hash');
 
-                        foreach ($aggregates as $aggregate) {
-                            if ($aggregate === $currentAggregate) {
-                                $query->selectRaw(match ($aggregate) {
-                                    'count' => "sum({$this->wrap('value')})",
-                                    'min' => "min({$this->wrap('value')})",
-                                    'max' => "max({$this->wrap('value')})",
-                                    'sum' => "sum({$this->wrap('value')})",
-                                    'avg' => "avg({$this->wrap('value')})",
-                                }." as {$this->wrap($aggregate)}");
-                            } else {
-                                $query->selectRaw("null as {$this->wrap($aggregate)}");
+                            foreach ($aggregates as $aggregate) {
+                                if ($aggregate === $currentAggregate) {
+                                    $query->selectRaw(match ($aggregate) {
+                                        'count' => "sum({$this->wrap('value')})",
+                                        'min' => "min({$this->wrap('value')})",
+                                        'max' => "max({$this->wrap('value')})",
+                                        'sum' => "sum({$this->wrap('value')})",
+                                        'avg' => "avg({$this->wrap('value')})",
+                                    }." as {$this->wrap($aggregate)}");
+                                } else {
+                                    $query->selectRaw("null as {$this->wrap($aggregate)}");
+                                }
                             }
-                        }
 
-                        $query
-                            ->from('datum_aggregates')
-                            ->where('period', $period)
-                            ->where('type', $type)
-                            ->where('aggregate', $currentAggregate)
-                            ->where('bucket', '>=', $oldestBucket)
-                            ->groupBy('key_hash');
-                        //                        });
+                            $query
+                                ->from('datum_aggregates')
+                                ->where('period', $period)
+                                ->where('type', $type)
+                                ->where('aggregate', $currentAggregate)
+                                ->where('bucket', '>=', $oldestBucket)
+                                ->groupBy('key_hash');
+                        });
                     }
                 }, as: 'results')
                     ->groupBy('key_hash')
@@ -655,36 +650,15 @@ class DatabaseStorage implements Storage
                 $query->fromSub(function (Builder $query) use ($types, $aggregate, $interval) {
                     $now = CarbonImmutable::now();
                     $period = $interval->period();
-                    $windowStart = (int) ($now->getTimestamp() - $interval->totalSeconds() + 1);
-                    $oldestBucket = $interval->currentBucket() - $interval->totalSeconds() + $period;
+                    $windowStart = (int) ($now->getTimestamp() - $interval->totalSeconds());
+                    $oldestBucket = $interval->currentBucket() - $interval->totalSeconds();
 
                     // Tail
-                    //                    $query->select('key_hash');
-                    //
-                    //                    foreach ($types as $type) {
-                    //                        $query->selectRaw(match ($aggregate) {
-                    //                            'count' => "count(case when ({$this->wrap('type')} = ?) then true else null end)",
-                    //                            'min' => "min(case when ({$this->wrap('type')} = ?) then {$this->wrap('value')} else null end)",
-                    //                            'max' => "max(case when ({$this->wrap('type')} = ?) then {$this->wrap('value')} else null end)",
-                    //                            'sum' => "sum(case when ({$this->wrap('type')} = ?) then {$this->wrap('value')} else null end)",
-                    //                            'avg' => "avg(case when ({$this->wrap('type')} = ?) then {$this->wrap('value')} else null end)",
-                    //                        }." as {$this->wrap($type)}", [$type]);
-                    //                    }
-                    //
-                    //                    $query
-                    //                        ->from('datum_entries')
-                    //                        ->whereIn('type', $types)
-                    //                        ->where('timestamp', '>=', $windowStart)
-                    //                        ->where('timestamp', '<=', $oldestBucket - 1)
-                    //                        ->groupBy('key_hash');
-
-                    // Buckets
-                    //                    $query->unionAll(function (Builder $query) use ($types, $aggregate, $period, $oldestBucket) {
                     $query->select('key_hash');
 
                     foreach ($types as $type) {
                         $query->selectRaw(match ($aggregate) {
-                            'count' => "sum(case when ({$this->wrap('type')} = ?) then {$this->wrap('value')} else null end)",
+                            'count' => "count(case when ({$this->wrap('type')} = ?) then true else null end)",
                             'min' => "min(case when ({$this->wrap('type')} = ?) then {$this->wrap('value')} else null end)",
                             'max' => "max(case when ({$this->wrap('type')} = ?) then {$this->wrap('value')} else null end)",
                             'sum' => "sum(case when ({$this->wrap('type')} = ?) then {$this->wrap('value')} else null end)",
@@ -693,13 +667,34 @@ class DatabaseStorage implements Storage
                     }
 
                     $query
-                        ->from('datum_aggregates')
-                        ->where('period', $period)
+                        ->from('datum_entries')
                         ->whereIn('type', $types)
-                        ->where('aggregate', $aggregate)
-                        ->where('bucket', '>=', $oldestBucket)
+                        ->where('timestamp', '>=', $windowStart)
+                        ->where('timestamp', '<=', $oldestBucket - 1)
                         ->groupBy('key_hash');
-                    //                    });
+
+                    // Buckets
+                    $query->unionAll(function (Builder $query) use ($types, $aggregate, $period, $oldestBucket) {
+                        $query->select('key_hash');
+
+                        foreach ($types as $type) {
+                            $query->selectRaw(match ($aggregate) {
+                                'count' => "sum(case when ({$this->wrap('type')} = ?) then {$this->wrap('value')} else null end)",
+                                'min' => "min(case when ({$this->wrap('type')} = ?) then {$this->wrap('value')} else null end)",
+                                'max' => "max(case when ({$this->wrap('type')} = ?) then {$this->wrap('value')} else null end)",
+                                'sum' => "sum(case when ({$this->wrap('type')} = ?) then {$this->wrap('value')} else null end)",
+                                'avg' => "avg(case when ({$this->wrap('type')} = ?) then {$this->wrap('value')} else null end)",
+                            }." as {$this->wrap($type)}", [$type]);
+                        }
+
+                        $query
+                            ->from('datum_aggregates')
+                            ->where('period', $period)
+                            ->whereIn('type', $types)
+                            ->where('aggregate', $aggregate)
+                            ->where('bucket', '>=', $oldestBucket)
+                            ->groupBy('key_hash');
+                    });
                 }, as: 'results')
                     ->groupBy('key_hash')
                     ->orderBy($orderBy, $direction)

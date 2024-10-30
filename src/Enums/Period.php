@@ -74,6 +74,25 @@ enum Period
     /**
      * Function period.
      */
+    public function maxCount(): int
+    {
+        return match ($this) {
+            self::HOUR => 24,
+            self::SIXHOUR => 30 * 4,
+            self::HALFDAY => 30 * 2,
+            self::DAY => 30,
+            self::WEEK => 4,
+            self::MONTH => 12,
+            self::QUARTER => 4,
+            self::HALFYEAR => 2,
+            self::YEAR => 10,
+            self::TAXYEAR => 10,
+        };
+    }
+
+    /**
+     * Function period.
+     */
     public function period(): int
     {
         return match ($this) {
@@ -82,11 +101,11 @@ enum Period
             self::HALFDAY => 60 * 12,
             self::DAY => 60 * 24,
             self::WEEK => 60 * 24 * 7,
-            self::MONTH => 60 * 24 * CarbonImmutable::now()->daysInMonth,
-            self::QUARTER => 60 * 24 * (int) CarbonImmutable::now()->daysInYear / 4,
-            self::HALFYEAR => 60 * 24 * (int) CarbonImmutable::now()->daysInYear / 2,
+            self::MONTH => 60 * 24 * 30,
+            self::QUARTER => 60 * 24 * (int) 365 / 4,
+            self::HALFYEAR => 60 * 24 * (int) 365 / 2,
             self::YEAR => 60 * 24 * 365,
-            self::TAXYEAR => (int) (60 * 24 * 365.25),
+            self::TAXYEAR => 60 * 24 * 364,
         };
     }
 
@@ -108,11 +127,19 @@ enum Period
         $now = CarbonImmutable::createFromTimestamp($timestamp);
 
         return match ($this) {
-            self::HOUR => $now->startOfMinute()->getTimestamp(),
-            self::SIXHOUR, self::DAY, self::HALFDAY => $now->startOfHour()->getTimestamp(),
-            self::WEEK, self::QUARTER, self::MONTH => $now->startOfDay()->getTimestamp(),
-            self::HALFYEAR, self::YEAR => $now->startOfMonth()->getTimestamp(),
-            self::TAXYEAR => ($now->gte(CarbonImmutable::createFromDate($now->year, $now->month, 6)->startOfDay()) ? CarbonImmutable::createFromDate($now->year, $now->month, 6) : CarbonImmutable::createFromDate($now->subMonth()->year, $now->subMonth()->month, 6))->startOfDay()->getTimestamp(),
+            self::HOUR => $now->startOfHour()->getTimestamp(),
+            self::SIXHOUR => $now->startOfDay()->addHours((int) ($now->hour / 6) * 6)->getTimestamp(),
+            self::HALFDAY => ($now->hour < 12 ? $now->startOfDay() : $now->startOfDay()->addHours(12))->getTimestamp(),
+            self::DAY => $now->startOfDay() ->getTimestamp(),
+            self::WEEK => $now->startOfWeek()->getTimestamp(),
+            self::MONTH => $now->startOfMonth()->getTimestamp(),
+            self::QUARTER => $now->startOfQuarter()->getTimestamp(),
+            self::HALFYEAR => $now->startOfYear()->addMonths((int) (($now->month - 1) / 6) * 6)->getTimestamp(),
+            self::YEAR => $now->startOfYear()->getTimestamp(),
+            self::TAXYEAR => ($now->gte(CarbonImmutable::createFromDate($now->year, 4, 6)->startOfDay())
+                ? CarbonImmutable::createFromDate($now->year, 4, 6)
+                : CarbonImmutable::createFromDate($now->year - 1, 4, 6)
+            )->startOfDay()->getTimestamp(),
         };
     }
 

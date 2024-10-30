@@ -32,7 +32,7 @@ return [
         'driver' => env('DATUM_STORAGE_DRIVER', 'database'),
 
         'database' => [
-            'connection' => env('DATUM_DB_CONNECTION', 'tenant'),
+            'connection' => env('DATUM_DB_CONNECTION'),
             'chunk' => 1000,
         ],
     ],
