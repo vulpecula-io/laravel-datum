@@ -7,18 +7,18 @@ namespace Vulpecula\Datum\Enums;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonPeriodImmutable;
 
-enum Period
+enum Period: int
 {
-    case HOUR;
-    case SIXHOUR;
-    case HALFDAY;
-    case DAY;
-    case WEEK;
-    case MONTH;
-    case QUARTER;
-    case HALFYEAR;
-    case YEAR;
-    case TAXYEAR;
+    case HOUR = 0;
+    case SIXHOUR = 1;
+    case HALFDAY = 2;
+    case DAY = 3;
+    case WEEK = 4;
+    case MONTH = 5;
+    case QUARTER = 6;
+    case HALFYEAR = 7;
+    case YEAR = 8;
+    case TAXYEAR = 9;
 
     /**
      * Function label.
@@ -130,7 +130,7 @@ enum Period
             self::HOUR => $now->startOfHour()->getTimestamp(),
             self::SIXHOUR => $now->startOfDay()->addHours((int) ($now->hour / 6) * 6)->getTimestamp(),
             self::HALFDAY => ($now->hour < 12 ? $now->startOfDay() : $now->startOfDay()->addHours(12))->getTimestamp(),
-            self::DAY => $now->startOfDay() ->getTimestamp(),
+            self::DAY => $now->startOfDay()->getTimestamp(),
             self::WEEK => $now->startOfWeek()->getTimestamp(),
             self::MONTH => $now->startOfMonth()->getTimestamp(),
             self::QUARTER => $now->startOfQuarter()->getTimestamp(),

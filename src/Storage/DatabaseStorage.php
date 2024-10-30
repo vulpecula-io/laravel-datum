@@ -168,12 +168,12 @@ class DatabaseStorage implements Storage
 
                 $bucket = $period->getBucketForTimestamp($entry->timestamp);
 
-                $key = $entry->type.':'.$period->period().':'.$bucket.':'.$entry->key;
+                $key = $entry->type.':'.$period->value.':'.$bucket.':'.$entry->key;
 
                 if (! isset($aggregates[$key])) {
                     $aggregates[$key] = $callback([
                         'bucket' => $bucket,
-                        'period' => $period->period(),
+                        'period' => $period->value,
                         'type' => $entry->type,
                         'aggregate' => $aggregate,
                         'key' => $entry->key,
@@ -391,7 +391,7 @@ class DatabaseStorage implements Storage
         foreach (Period::cases() as $period) {
             $this->connection()
                 ->table('datum_aggregates')
-                ->where('period', $period->period())
+                ->where('period', $period->value)
                 ->where('bucket', '<=', $period->getBucketForTimestamp($now->subMinutes($period->period() * $period->maxCount())->getTimestamp()))
                 ->delete();
         }
@@ -451,7 +451,7 @@ class DatabaseStorage implements Storage
             throw new InvalidArgumentException("Invalid aggregate type [$aggregate], allowed types: [".implode(', ', $allowed).'].');
         }
 
-        $period = $interval->period();
+        $period = $interval->value;
         $buckets = $interval->getBuckets();
         $padding = collect()
             ->range(0, $interval->maxDataPoints() - 1)
@@ -463,7 +463,7 @@ class DatabaseStorage implements Storage
             ->select(['bucket', 'type', 'key', 'value'])
             ->whereIn('type', $types)
             ->where('aggregate', $aggregate)
-            ->where('period', $period)
+            ->where('period', $period - 1)
             ->where('bucket', '>=', $buckets[0]->getTimestamp())
             ->orderBy('bucket')
             ->get()
@@ -533,10 +533,9 @@ class DatabaseStorage implements Storage
 
                 $query->fromSub(function (Builder $query) use ($type, $aggregates, $interval) {
                     $now = CarbonImmutable::now();
-                    $period = $interval->period();
+                    $period = $interval->value;
                     $windowStart = (int) ($now->getTimestamp() - $interval->totalSeconds() + 1);
                     $oldestBucket = $interval->currentBucket() - $interval->totalSeconds();
-                    ray($interval->currentBucket(), $interval->totalSeconds(), $period, $oldestBucket);
 
                     // Tail
                     $query->select('key_hash');
@@ -649,7 +648,7 @@ class DatabaseStorage implements Storage
 
                 $query->fromSub(function (Builder $query) use ($types, $aggregate, $interval) {
                     $now = CarbonImmutable::now();
-                    $period = $interval->period();
+                    $period = $interval->value;
                     $windowStart = (int) ($now->getTimestamp() - $interval->totalSeconds());
                     $oldestBucket = $interval->currentBucket() - $interval->totalSeconds();
 
@@ -741,7 +740,7 @@ class DatabaseStorage implements Storage
                     'avg' => "avg({$this->wrap('value')})",
                 }." as {$this->wrap($aggregate)}")
                 ->from('datum_aggregates')
-                ->where('period', $interval->period())
+                ->where('period', $interval->value)
                 ->when(
                     is_array($types),
                     fn ($query) => $query->whereIn('type', $types),

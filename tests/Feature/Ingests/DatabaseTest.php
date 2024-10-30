@@ -171,21 +171,21 @@ it('trims aggregates once the quarter bucket is no longer relevant', function ()
     Date::setTestNow('2000-01-01 02:23:59'); // Bucket: 2000-01-01 00:00:00
     Datum::record('foo', 'xxxx', 1)->count();
     Datum::ingest();
-    expect(Datum::ignore(fn () => DB::table('datum_aggregates')->where('period', $period->period())->count()))->toBe(1);
+    expect(Datum::ignore(fn () => DB::table('datum_aggregates')->where('period', $period->value)->count()))->toBe(1);
 
     Date::setTestNow('2000-04-01 02:24:00'); // Bucket: 2000-04-01 00:00:00
     Datum::record('foo', 'xxxx', 1)->count();
     Datum::ingest();
-    expect(Datum::ignore(fn () => DB::table('datum_aggregates')->where('period', $period->period())->count()))->toBe(2);
+    expect(Datum::ignore(fn () => DB::table('datum_aggregates')->where('period', $period->value)->count()))->toBe(2);
 
     Datum::stopRecording();
     Date::setTestNow('2000-12-30 23:59:59'); // 1 second before the oldest bucket become irrelevant.
     App::make(DatabaseStorage::class)->trim();
-    expect(DB::table('datum_aggregates')->where('period', $period->period())->count())->toBe(2);
+    expect(DB::table('datum_aggregates')->where('period', $period->value)->count())->toBe(2);
 
     Date::setTestNow('2000-12-31 00:00:00'); // The second the oldest bucket become irrelevant.
     App::make(DatabaseStorage::class)->trim();
-    expect(DB::table('datum_aggregates')->where('period', $period->period())->count())->toBe(1);
+    expect(DB::table('datum_aggregates')->where('period', $period->value)->count())->toBe(1);
 });
 
 it('trims aggregates once the half year bucket is no longer relevant', function () {
@@ -194,21 +194,21 @@ it('trims aggregates once the half year bucket is no longer relevant', function 
     Date::setTestNow('2000-01-01 02:23:59'); // Bucket: 2000-01-01 00:00:00
     Datum::record('foo', 'xxxx', 1)->count();
     Datum::ingest();
-    expect(Datum::ignore(fn () => DB::table('datum_aggregates')->where('period', $period->period())->count()))->toBe(1);
+    expect(Datum::ignore(fn () => DB::table('datum_aggregates')->where('period', $period->value)->count()))->toBe(1);
 
     Date::setTestNow('2000-07-01 02:24:00'); // Bucket: 2000-07-01 00:00:00
     Datum::record('foo', 'xxxx', 1)->count();
     Datum::ingest();
-    expect(Datum::ignore(fn () => DB::table('datum_aggregates')->where('period', $period->period())->count()))->toBe(2);
+    expect(Datum::ignore(fn () => DB::table('datum_aggregates')->where('period', $period->value)->count()))->toBe(2);
 
     Datum::stopRecording();
     Date::setTestNow('2000-12-30 23:59:59'); // 1 second before the oldest bucket become irrelevant.
     App::make(DatabaseStorage::class)->trim();
-    expect(DB::table('datum_aggregates')->where('period', $period->period())->count())->toBe(2);
+    expect(DB::table('datum_aggregates')->where('period', $period->value)->count())->toBe(2);
 
     Date::setTestNow('2000-12-31 00:00:00'); // The second the oldest bucket become irrelevant.
     App::make(DatabaseStorage::class)->trim();
-    expect(DB::table('datum_aggregates')->where('period', $period->period())->count())->toBe(1);
+    expect(DB::table('datum_aggregates')->where('period', $period->value)->count())->toBe(1);
 });
 
 it('trims aggregates once the year bucket is no longer relevant', function () {
@@ -217,21 +217,21 @@ it('trims aggregates once the year bucket is no longer relevant', function () {
     Date::setTestNow('2000-01-01 02:23:59'); // Bucket: 2000-01-01 00:00:00
     Datum::record('foo', 'xxxx', 1)->count();
     Datum::ingest();
-    expect(Datum::ignore(fn () => DB::table('datum_aggregates')->where('period', $period->period())->count()))->toBe(1);
+    expect(Datum::ignore(fn () => DB::table('datum_aggregates')->where('period', $period->value)->count()))->toBe(1);
 
     Date::setTestNow('2001-01-01 02:24:00'); // Bucket: 2000-07-01 00:00:00
     Datum::record('foo', 'xxxx', 1)->count();
     Datum::ingest();
-    expect(Datum::ignore(fn () => DB::table('datum_aggregates')->where('period', $period->period())->count()))->toBe(2);
+    expect(Datum::ignore(fn () => DB::table('datum_aggregates')->where('period', $period->value)->count()))->toBe(2);
 
     Datum::stopRecording();
     Date::setTestNow('2009-12-28 23:59:59'); // 1 second before the oldest bucket become irrelevant.
     App::make(DatabaseStorage::class)->trim();
-    expect(DB::table('datum_aggregates')->where('period', $period->period())->count())->toBe(2);
+    expect(DB::table('datum_aggregates')->where('period', $period->value)->count())->toBe(2);
 
     Date::setTestNow('2009-12-29 00:00:00'); // The second the oldest bucket become irrelevant.
     App::make(DatabaseStorage::class)->trim();
-    expect(DB::table('datum_aggregates')->where('period', $period->period())->count())->toBe(1);
+    expect(DB::table('datum_aggregates')->where('period', $period->value)->count())->toBe(1);
 });
 
 it('trims aggregates once the tax year bucket is no longer relevant', function () {
@@ -240,19 +240,19 @@ it('trims aggregates once the tax year bucket is no longer relevant', function (
     Date::setTestNow('2000-01-01 02:23:59'); // Bucket: 1999-04-01 00:00:00
     Datum::record('foo', 'xxxx', 1)->count();
     Datum::ingest();
-    expect(Datum::ignore(fn () => DB::table('datum_aggregates')->where('period', $period->period())->count()))->toBe(1);
+    expect(Datum::ignore(fn () => DB::table('datum_aggregates')->where('period', $period->value)->count()))->toBe(1);
 
     Date::setTestNow('2001-01-01 02:24:00'); // Bucket: 2000-04-01 00:00:00
     Datum::record('foo', 'xxxx', 1)->count();
     Datum::ingest();
-    expect(Datum::ignore(fn () => DB::table('datum_aggregates')->where('period', $period->period())->count()))->toBe(2);
+    expect(Datum::ignore(fn () => DB::table('datum_aggregates')->where('period', $period->value)->count()))->toBe(2);
 
     Datum::stopRecording();
     Date::setTestNow('2009-03-23 23:59:59'); // 1 second before the oldest bucket become irrelevant.
     App::make(DatabaseStorage::class)->trim();
-    expect(DB::table('datum_aggregates')->where('period', $period->period())->count())->toBe(2);
+    expect(DB::table('datum_aggregates')->where('period', $period->value)->count())->toBe(2);
 
     Date::setTestNow('2009-03-24 00:00:00'); // The second the oldest bucket become irrelevant.
     App::make(DatabaseStorage::class)->trim();
-    expect(DB::table('datum_aggregates')->where('period', $period->period())->count())->toBe(1);
+    expect(DB::table('datum_aggregates')->where('period', $period->value)->count())->toBe(1);
 });
