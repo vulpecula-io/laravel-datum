@@ -163,6 +163,30 @@ enum Period: int
     }
 
     /**
+     * Function getBucketForTimestamp.
+     */
+    public function getOldestBucketTimestamp(): int
+    {
+        $now = CarbonImmutable::now();
+
+        return match ($this) {
+            self::HOUR => $now->startOfHour()->subHours($this->maxCount())->getTimestamp(),
+            self::SIXHOUR => $now->startOfDay()->addHours((int) ($now->hour / 6) * 6)->subHours($this->maxCount() * 6)->getTimestamp(),
+            self::HALFDAY => ($now->hour < 12 ? $now->startOfDay() : $now->startOfDay()->addHours(12))->subHours($this->maxCount() * 12)->getTimestamp(),
+            self::DAY => $now->startOfDay()->subDays($this->maxCount())->getTimestamp(),
+            self::WEEK => $now->startOfWeek()->subWeeks($this->maxCount())->getTimestamp(),
+            self::MONTH => $now->startOfMonth()->subMonths($this->maxCount())->getTimestamp(),
+            self::QUARTER => $now->startOfQuarter()->subQuarters($this->maxCount())->getTimestamp(),
+            self::HALFYEAR => $now->startOfYear()->addMonths((int) (($now->month - 1) / 6) * 6)->subMonths($this->maxCount() * 6)->getTimestamp(),
+            self::YEAR => $now->startOfYear()->subYears($this->maxCount())->getTimestamp(),
+            self::TAXYEAR => ($now->gte(CarbonImmutable::createFromDate($now->year, 4, 6)->startOfDay())
+                ? CarbonImmutable::createFromDate($now->year, 4, 6)
+                : CarbonImmutable::createFromDate($now->year - 1, 4, 6)
+            )->startOfDay()->subYears($this->maxCount())->getTimestamp(),
+        };
+    }
+
+    /**
      * Function getDateTimeFormat.
      */
     public function getDateTimeFormat(): string
