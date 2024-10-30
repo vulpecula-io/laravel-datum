@@ -130,7 +130,7 @@ enum Period
             self::HOUR => $now->startOfHour()->getTimestamp(),
             self::SIXHOUR => $now->startOfDay()->addHours((int) ($now->hour / 6) * 6)->getTimestamp(),
             self::HALFDAY => ($now->hour < 12 ? $now->startOfDay() : $now->startOfDay()->addHours(12))->getTimestamp(),
-            self::DAY => $now->startOfDay() ->getTimestamp(),
+            self::DAY => $now->startOfDay()->getTimestamp(),
             self::WEEK => $now->startOfWeek()->getTimestamp(),
             self::MONTH => $now->startOfMonth()->getTimestamp(),
             self::QUARTER => $now->startOfQuarter()->getTimestamp(),
