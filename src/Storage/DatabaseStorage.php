@@ -464,7 +464,7 @@ class DatabaseStorage implements Storage
             ->whereIn('type', $types)
             ->where('aggregate', $aggregate)
             ->where('period', $period->graphPeriod()?->value)
-            ->where('bucket', '>=', ray()->pass($buckets[0]->getTimestamp()))
+            ->where('bucket', '>=', $buckets[0]->getTimestamp())
             ->orderBy('bucket')
             ->get()
             ->groupBy('key')
