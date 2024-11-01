@@ -731,24 +731,24 @@ class DatabaseStorage implements Storage
             }." as {$this->wrap($aggregate)}")
             ->fromSub(fn (Builder $query) => $query
             // Buckets
-            ->addSelect('type')
-            ->selectRaw(match ($aggregate) {
-                'count' => "sum({$this->wrap('value')})",
-                'min' => "min({$this->wrap('value')})",
-                'max' => "max({$this->wrap('value')})",
-                'sum' => "sum({$this->wrap('value')})",
-                'avg' => "avg({$this->wrap('value')})",
-            }." as {$this->wrap($aggregate)}")
-            ->from('datum_aggregates')
-            ->where('period', $interval->value)
-            ->when(
-                is_array($types),
-                fn ($query) => $query->whereIn('type', $types),
-                fn ($query) => $query->where('type', $types)
-            )
-            ->where('aggregate', $aggregate)
-            ->where('bucket', '>=', $window['start'])
-            ->groupBy('type'), as: 'child'
+                ->addSelect('type')
+                ->selectRaw(match ($aggregate) {
+                    'count' => "sum({$this->wrap('value')})",
+                    'min' => "min({$this->wrap('value')})",
+                    'max' => "max({$this->wrap('value')})",
+                    'sum' => "sum({$this->wrap('value')})",
+                    'avg' => "avg({$this->wrap('value')})",
+                }." as {$this->wrap($aggregate)}")
+                ->from('datum_aggregates')
+                ->where('period', $interval->value)
+                ->when(
+                    is_array($types),
+                    fn ($query) => $query->whereIn('type', $types),
+                    fn ($query) => $query->where('type', $types)
+                )
+                ->where('aggregate', $aggregate)
+                ->where('bucket', '>=', $window['start'])
+                ->groupBy('type'), as: 'child'
             )
             ->groupBy('type')
             ->when(
