@@ -99,7 +99,7 @@ enum Period: int
             self::HOUR => 24,
             self::SIXHOUR => 30 * 4,
             self::HALFDAY => 30 * 2,
-            self::DAY => 30,
+            self::DAY => 365,
             self::WEEK => 4,
             self::MONTH => 12,
             self::QUARTER => 4,
