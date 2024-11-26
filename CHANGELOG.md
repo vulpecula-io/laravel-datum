@@ -2,6 +2,14 @@
 
 All notable changes to `laravel-datum` will be documented in this file.
 
+## v0.3.1 - 2024-11-26
+
+### What's Changed
+
+* 🐞 Fix the maxCount for DAY by @rabrowne85 in https://github.com/vulpecula-io/laravel-datum/pull/6
+
+**Full Changelog**: https://github.com/vulpecula-io/laravel-datum/compare/v0.3.0...v0.3.1
+
 ## v0.3.0 - 2024-11-26
 
 ### What's Changed
