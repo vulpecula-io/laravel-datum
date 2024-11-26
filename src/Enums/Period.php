@@ -66,7 +66,7 @@ enum Period: int
             self::HALFDAY, self::DAY => 24,
             self::WEEK => 7,
             self::MONTH => CarbonImmutable::now()->daysInMonth,
-            self::QUARTER => (int) CarbonImmutable::now()->daysInYear / 4,
+            self::QUARTER => (int) (CarbonImmutable::now()->daysInYear / 4),
             self::HALFYEAR => 6,
         };
     }
