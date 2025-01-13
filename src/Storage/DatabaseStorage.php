@@ -740,7 +740,7 @@ class DatabaseStorage implements Storage
                     'avg' => "avg({$this->wrap('value')})",
                 }." as {$this->wrap($aggregate)}")
                 ->from('datum_aggregates')
-                ->where('period', $interval->value)
+                ->where('period', $interval->graphPeriod()?->value)
                 ->when(
                     is_array($types),
                     fn ($query) => $query->whereIn('type', $types),
