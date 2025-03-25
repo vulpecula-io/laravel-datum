@@ -803,7 +803,7 @@ test('total aggregate for a single type', function () {
 
     Datum::ingest();
 
-    Carbon::setTestNow('2000-01-01 13:00:00');
+    Carbon::setTestNow('2000-01-01 13:00:01');
 
     $total = Datum::aggregateTotal('cache_hit', 'count', Period::HOUR);
 

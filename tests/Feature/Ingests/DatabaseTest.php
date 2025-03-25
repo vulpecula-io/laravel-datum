@@ -114,11 +114,11 @@ it('trims aggregates once the 24 hour bucket is no longer relevant', function ()
     expect(Datum::ignore(fn () => DB::table('datum_aggregates')->where('period', Period::DAY)->count()))->toBe(2);
 
     Datum::stopRecording();
-    Date::setTestNow('2000-01-30 23:59:59'); // 1 second before the oldest bucket become irrelevant.
+    Date::setTestNow('2000-12-30 23:59:59'); // 1 second before the oldest bucket become irrelevant.
     App::make(DatabaseStorage::class)->trim();
     expect(DB::table('datum_aggregates')->where('period', Period::DAY)->count())->toBe(2);
 
-    Date::setTestNow('2000-01-31 00:00:00'); // The second the oldest bucket become irrelevant.
+    Date::setTestNow('2000-12-31 00:00:00'); // The second the oldest bucket become irrelevant.
     App::make(DatabaseStorage::class)->trim();
     expect(DB::table('datum_aggregates')->where('period', Period::DAY)->count())->toBe(1);
 });

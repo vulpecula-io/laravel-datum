@@ -77,7 +77,7 @@ enum Period: int
     public function graphPeriod(): ?Period
     {
         return match ($this) {
-            self::HOUR => null,
+            self::HOUR => self::HOUR,
             self::SIXHOUR => self::HOUR,
             self::HALFDAY => self::HOUR,
             self::DAY => self::HOUR,
