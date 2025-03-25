@@ -71,13 +71,13 @@ class DatumServiceProvider extends PackageServiceProvider
             });
 
             $this->callAfterResolving(HttpKernel::class, function (HttpKernel $kernel, Application $app) {
-                $kernel->whenRequestLifecycleIsLongerThan(-1, function () use ($app) { // @phpstan-ignore method.notFound
+                $kernel->whenRequestLifecycleIsLongerThan(-1, function () use ($app) {
                     $app->make(Datum::class)->ingest();
                 });
             });
 
             $this->callAfterResolving(ConsoleKernel::class, function (ConsoleKernel $kernel, Application $app) {
-                $kernel->whenCommandLifecycleIsLongerThan(-1, function () use ($app) { // @phpstan-ignore method.notFound
+                $kernel->whenCommandLifecycleIsLongerThan(-1, function () use ($app) {
                     $app->make(Datum::class)->ingest();
                 });
             });

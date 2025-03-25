@@ -76,27 +76,27 @@ class DatabaseStorage implements Storage
             );
 
             $this
-                ->preaggregateCounts(collect($counts)) // @phpstan-ignore argument.templateType argument.templateType
+                ->preaggregateCounts(collect($counts))
                 ->chunk($this->config->get('datum.storage.database.chunk'))
                 ->each(fn ($chunk) => $this->upsertCount($chunk->all()));
 
             $this
-                ->preaggregateMinimums(collect($minimums)) // @phpstan-ignore argument.templateType argument.templateType
+                ->preaggregateMinimums(collect($minimums))
                 ->chunk($this->config->get('datum.storage.database.chunk'))
                 ->each(fn ($chunk) => $this->upsertMin($chunk->all()));
 
             $this
-                ->preaggregateMaximums(collect($maximums)) // @phpstan-ignore argument.templateType argument.templateType
+                ->preaggregateMaximums(collect($maximums))
                 ->chunk($this->config->get('datum.storage.database.chunk'))
                 ->each(fn ($chunk) => $this->upsertMax($chunk->all()));
 
             $this
-                ->preaggregateSums(collect($sums)) // @phpstan-ignore argument.templateType argument.templateType
+                ->preaggregateSums(collect($sums))
                 ->chunk($this->config->get('datum.storage.database.chunk'))
                 ->each(fn ($chunk) => $this->upsertSum($chunk->all()));
 
             $this
-                ->preaggregateAverages(collect($averages)) // @phpstan-ignore argument.templateType argument.templateType
+                ->preaggregateAverages(collect($averages))
                 ->chunk($this->config->get('datum.storage.database.chunk'))
                 ->each(fn ($chunk) => $this->upsertAvg($chunk->all()));
 
@@ -111,7 +111,7 @@ class DatabaseStorage implements Storage
                                 ...($attributes = $entry->attributes()),
                                 'key_hash' => md5($attributes['key']),
                             ])->all()
-                            : $chunk->map->attributes()->all(), // @phpstan-ignore method.notFound
+                            : $chunk->map->attributes()->all(),
                         ['type', 'key_hash'],
                         ['timestamp', 'value']
                     )
@@ -459,7 +459,7 @@ class DatabaseStorage implements Storage
 
         $structure = collect($types)->mapWithKeys(fn ($type) => [$type => $padding]);
 
-        return $this->connection()->table('datum_aggregates') // @phpstan-ignore return.type
+        return $this->connection()->table('datum_aggregates')
             ->select(['bucket', 'type', 'key', 'value'])
             ->whereIn('type', $types)
             ->where('aggregate', $aggregate)
